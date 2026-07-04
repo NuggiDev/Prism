@@ -3,6 +3,14 @@
 #include <iostream>
 #include <memory>
 #include <array>
+#include <cstdio>
+
+#ifdef _WIN32
+    #define popen _popen
+    #define pclose _pclose
+#else
+    #include <sys/wait.h>
+#endif
 
 int BuildExecutor::execute(const std::string& command) {
     return system(command.c_str());
@@ -10,14 +18,15 @@ int BuildExecutor::execute(const std::string& command) {
 
 int BuildExecutor::executeWithOutput(const std::string& command, OutputCallback callback) {
     std::array<char, 256> buffer;
-    std::string result;
     
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), &pclose);
-    if (!pipe) {
+    FILE* pipeHandle = popen(command.c_str(), "r");
+    if (!pipeHandle) {
         return -1;
     }
     
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(pipeHandle, &pclose);
+    
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
         std::string line(buffer.data());
         std::cout << line;
         
@@ -33,12 +42,14 @@ std::string BuildExecutor::captureOutput(const std::string& command) {
     std::array<char, 256> buffer;
     std::string result;
     
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), &pclose);
-    if (!pipe) {
+    FILE* pipeHandle = popen(command.c_str(), "r");
+    if (!pipeHandle) {
         return "";
     }
     
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(pipeHandle, &pclose);
+    
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
         result += buffer.data();
     }
     

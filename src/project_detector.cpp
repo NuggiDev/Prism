@@ -24,7 +24,8 @@ ProjectType ProjectDetector::identifyType(const std::string& projectPath) {
     };
     
     for (const auto& [marker, type] : markers) {
-        if (fileExists(projectPath + "/" + marker)) {
+        fs::path markerPath = fs::path(projectPath) / marker;
+        if (fileExists(markerPath.string())) {
             return type;
         }
     }
@@ -91,14 +92,23 @@ ProjectInfo ProjectDetector::createProjectInfo(ProjectType type) {
 
 std::string ProjectDetector::projectTypeToString(ProjectType type) {
     switch (type) {
-        case ProjectType::CPP_CMAKE: return "C++ (CMake)";
-        case ProjectType::CSHARP_DOTNET: return "C# (.NET)";
-        case ProjectType::RUST_CARGO: return "Rust (Cargo)";
-        case ProjectType::C_MAKE: return "C (Make)";
-        case ProjectType::NODEJS_NPM: return "JavaScript (npm)";
-        case ProjectType::PYTHON_PIP: return "Python (pip)";
-        case ProjectType::JAVA_MAVEN: return "Java (Maven)";
-        case ProjectType::UNKNOWN: return "Unknown";
+        case ProjectType::CPP_CMAKE:
+            return "C++ (CMake)";
+        case ProjectType::CSHARP_DOTNET:
+            return "C# (.NET)";
+        case ProjectType::RUST_CARGO:
+            return "Rust (Cargo)";
+        case ProjectType::C_MAKE:
+            return "C (Make)";
+        case ProjectType::NODEJS_NPM:
+            return "JavaScript (npm)";
+        case ProjectType::PYTHON_PIP:
+            return "Python (pip)";
+        case ProjectType::JAVA_MAVEN:
+            return "Java (Maven)";
+        case ProjectType::UNKNOWN:
+            return "Unknown";
+        default:
+            return "Unknown";
     }
-    return "Unknown";
 }

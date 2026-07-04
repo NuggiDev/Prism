@@ -10,21 +10,21 @@
 #include <chrono>
 
 void printBanner() {
-    fmt::println("\n  ╔════════════════════════════════════════╗");
-    fmt::println("  ║    Prism - Universal Build System    ║");
-    fmt::println("  ║           v1.0.0                     ║");
-    fmt::println("  ╚════════════════════════════════════════╝\n");
+    fmt::print("\n  ╔════════════════════════════════════════╗\n");
+    fmt::print("  ║    Prism - Universal Build System    ║\n");
+    fmt::print("  ║           v1.0.0                     ║\n");
+    fmt::print("  ╚════════════════════════════════════════╝\n\n");
 }
 
 void printHelp() {
-    fmt::println("  Usage:");
-    fmt::println("    prism build [path]      Detect and build project");
-    fmt::println("    prism rebuild [path]    Clean and rebuild");
-    fmt::println("    prism clean [path]      Remove build artifacts");
-    fmt::println("    prism detect [path]     Show detected project type");
-    fmt::println("    prism validate [path]   Check required build tools");
-    fmt::println("    prism info [path]       Show project information");
-    fmt::println("    prism help              Show this help\n");
+    fmt::print("  Usage:\n");
+    fmt::print("    prism build [path]      Detect and build project\n");
+    fmt::print("    prism rebuild [path]    Clean and rebuild\n");
+    fmt::print("    prism clean [path]      Remove build artifacts\n");
+    fmt::print("    prism detect [path]     Show detected project type\n");
+    fmt::print("    prism validate [path]   Check required build tools\n");
+    fmt::print("    prism info [path]       Show project information\n");
+    fmt::print("    prism help              Show this help\n\n");
 }
 
 void cmdBuild(const std::string& projectPath) {
@@ -56,7 +56,7 @@ void cmdBuild(const std::string& projectPath) {
     
     auto start = std::chrono::high_resolution_clock::now();
     logger->info(fmt::format("Building with: {}", info.buildCommand));
-    fmt::println("");
+    fmt::print("\n");
     
     BuildExecutor executor;
     int result = executor.executeWithOutput(info.buildCommand);
@@ -64,7 +64,7 @@ void cmdBuild(const std::string& projectPath) {
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
     
-    fmt::println("");
+    fmt::print("\n");
     if (result == 0) {
         logger->info(fmt::format("✓ Build successful ({}s)", duration.count()));
     } else {
@@ -120,12 +120,12 @@ void cmdDetect(const std::string& projectPath) {
         return;
     }
     
-    fmt::println("");
+    fmt::print("\n");
     logger->info(fmt::format("Project Type: {}", detector.projectTypeToString(info.type)));
     logger->info(fmt::format("Language: {}", info.language));
     logger->info(fmt::format("Build Tool: {}", info.buildTool));
     logger->info(fmt::format("Build Command: {}", info.buildCommand));
-    fmt::println("");
+    fmt::print("\n");
 }
 
 void cmdValidate(const std::string& projectPath) {
@@ -143,7 +143,7 @@ void cmdValidate(const std::string& projectPath) {
     std::vector<std::string> tools{info.buildTool};
     auto missing = validator.validateTools(tools);
     
-    fmt::println("");
+    fmt::print("\n");
     if (missing.empty()) {
         logger->info(fmt::format("✓ Build tool '{}' is installed", info.buildTool));
         logger->info(fmt::format("Version: {}", validator.getVersion(info.buildTool)));
@@ -153,7 +153,7 @@ void cmdValidate(const std::string& projectPath) {
             logger->info(fmt::format("Install: {}", validator.getInstallGuide(tool)));
         }
     }
-    fmt::println("");
+    fmt::print("\n");
 }
 
 void cmdInfo(const std::string& projectPath) {
@@ -169,7 +169,7 @@ void cmdInfo(const std::string& projectPath) {
     
     BuildToolValidator validator;
     
-    fmt::println("");
+    fmt::print("\n");
     logger->info(fmt::format("Project: {}", projectPath));
     logger->info(fmt::format("Type: {}", detector.projectTypeToString(info.type)));
     logger->info(fmt::format("Language: {}", info.language));
@@ -180,7 +180,7 @@ void cmdInfo(const std::string& projectPath) {
     } else {
         logger->info(fmt::format("Status: ✗ Missing build tool"));
     }
-    fmt::println("");
+    fmt::print("\n");
 }
 
 int main(int argc, char* argv[]) {

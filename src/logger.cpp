@@ -22,6 +22,9 @@ std::shared_ptr<spdlog::logger> Logger::get() {
 
 void Logger::setQuiet(bool quiet) {
     quietMode = quiet;
+    if (!instance) {
+        init();
+    }
     if (quiet) {
         instance->set_level(spdlog::level::off);
     } else {

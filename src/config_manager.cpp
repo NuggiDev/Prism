@@ -8,13 +8,13 @@ std::string ConfigManager::getUserConfigDir() {
     #ifdef _WIN32
         const char* appdata = getenv("APPDATA");
         if (appdata) {
-            return std::string(appdata) + "\\Prism";
+            return (fs::path(appdata) / "Prism").string();
         }
         return ".prism";
     #else
         const char* home = getenv("HOME");
         if (home) {
-            return std::string(home) + "/.prism";
+            return (fs::path(home) / ".prism").string();
         }
         return ".prism";
     #endif
@@ -26,7 +26,7 @@ void ConfigManager::init() {
 }
 
 std::string ConfigManager::getConfigPath() {
-    return getUserConfigDir() + "/config.json";
+    return (fs::path(getUserConfigDir()) / "config.json").string();
 }
 
 json ConfigManager::loadConfig() {
@@ -62,11 +62,13 @@ void ConfigManager::saveConfig(const json& config) {
 }
 
 json ConfigManager::getProjectConfig(const std::string& projectPath) {
-    if (!fs::exists(projectPath + "/prism.json")) {
+    fs::path configFile = fs::path(projectPath) / "prism.json";
+    
+    if (!fs::exists(configFile)) {
         return json::object();
     }
     
-    std::ifstream file(projectPath + "/prism.json");
+    std::ifstream file(configFile.string());
     if (!file.is_open()) {
         return json::object();
     }

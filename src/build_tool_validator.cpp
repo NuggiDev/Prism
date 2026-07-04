@@ -2,10 +2,13 @@
 #include <cstdlib>
 #include <memory>
 #include <array>
+#include <cstdio>
 
 #ifdef _WIN32
     #define DEVNULL "nul"
     #define PATH_SEP "\\"
+    #define popen _popen
+    #define pclose _pclose
 #else
     #define DEVNULL "/dev/null"
     #define PATH_SEP "/"
@@ -147,11 +150,16 @@ std::string BuildToolValidator::getVersion(const std::string& toolName) {
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), &pclose);
     if (!pipe) return "unknown";
     
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
         result += buffer.data();
     }
     
-    return result.substr(0, result.find('\n'));
+    // Remove trailing newline if present
+    size_t newline_pos = result.find('\n');
+    if (newline_pos != std::string::npos) {
+        return result.substr(0, newline_pos);
+    }
+    return result;
 }
 
 std::string BuildToolValidator::detectOS() {
@@ -162,6 +170,8 @@ std::string BuildToolValidator::detectOS() {
     #else
         return "linux";
     #endif
+    // Should never reach here
+    return "unknown";
 }
 
 bool BuildToolValidator::executeCheck(const std::string& command) {
