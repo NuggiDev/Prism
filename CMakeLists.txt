@@ -29,17 +29,15 @@ add_executable(prism
     src/config_manager.cpp
 )
 
-target_include_directories(prism PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${spdlog_SOURCE_DIR}/include
-    ${json_SOURCE_DIR}/single_include
-)
-
 target_link_libraries(prism PRIVATE
     fmt
     spdlog::spdlog
-    pthread
 )
+
+# Only link pthread if we are on Linux/Unix, NOT on Windows
+if(UNIX AND NOT APPLE)
+    target_link_libraries(prism PRIVATE pthread)
+endif()
 
 # --- Installation & Packaging ---
 install(TARGETS prism DESTINATION bin)
