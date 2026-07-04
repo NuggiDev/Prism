@@ -10,10 +10,8 @@
 #include <chrono>
 
 void printBanner() {
-    fmt::print("\n  ╔════════════════════════════════════════╗\n");
-    fmt::print("  ║    Prism - Universal Build System    ║\n");
-    fmt::print("  ║           v1.0.0                     ║\n");
-    fmt::print("  ╚════════════════════════════════════════╝\n\n");
+    fmt::print("      Prism - Universal Build System    ║\n");
+    fmt::print("             v1.0.0                     ║\n");
 }
 
 void printHelp() {
