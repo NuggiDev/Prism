@@ -33,7 +33,7 @@ jobs:
         run: ./prism help
       
       - name: Upload Linux binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: prism-linux
           path: build/prism
@@ -63,7 +63,7 @@ jobs:
         run: ./prism help
       
       - name: Upload macOS binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: prism-macos
           path: build/prism
@@ -92,7 +92,7 @@ jobs:
         run: .\Release\prism.exe help
       
       - name: Upload Windows binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: prism-windows
           path: build/Release/prism.exe
