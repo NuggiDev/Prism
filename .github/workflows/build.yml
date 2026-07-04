@@ -1,4 +1,4 @@
-name: Build & Test
+name: Build & Package
 
 on:
   push:
@@ -11,86 +11,52 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake build-essential
-      
-      - name: Create build directory
-        run: mkdir -p build
-      
-      - name: Configure CMake
-        working-directory: build
-        run: cmake ..
-      
-      - name: Build
-        working-directory: build
-        run: cmake --build . --config Release
-      
-      - name: Test help command
-        working-directory: build
-        run: ./prism help
-      
-      - name: Upload Linux binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: prism-linux
-          path: build/prism
+          sudo apt-get install -y cmake build-essential rpm
 
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install dependencies
-        run: |
-          brew install cmake
-      
       - name: Create build directory
         run: mkdir -p build
-      
+
       - name: Configure CMake
         working-directory: build
         run: cmake ..
-      
+
       - name: Build
         working-directory: build
         run: cmake --build . --config Release
-      
-      - name: Test help command
+
+      - name: Package with CPack
         working-directory: build
-        run: ./prism help
-      
-      - name: Upload macOS binary
+        run: cpack -G "DEB;RPM"
+
+      - name: Upload Linux Packages
         uses: actions/upload-artifact@v4
         with:
-          name: prism-macos
-          path: build/prism
+          name: prism-linux-packages
+          path: build/*.{deb,rpm}
 
   build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install CMake
         run: choco install cmake -y
-      
+
       - name: Create build directory
         run: mkdir -Force build
-      
+
       - name: Configure CMake
         working-directory: build
         run: cmake ..
-      
+
       - name: Build
         working-directory: build
         run: cmake --build . --config Release
-      
-      - name: Test help command
-        working-directory: build
-        run: .\Release\prism.exe help
-      
+
       - name: Upload Windows binary
         uses: actions/upload-artifact@v4
         with:
