@@ -30,13 +30,19 @@ jobs:
 
       - name: Package with CPack
         working-directory: build
-        run: cpack -G "DEB;RPM"
+        run: |
+          cpack -G DEB
+          cpack -G RPM
+          # Create a folder to collect all packages for easy uploading
+          mkdir -p ../packages
+          cp *.deb ../packages/ || true
+          cp *.rpm ../packages/ || true
 
       - name: Upload Linux Packages
         uses: actions/upload-artifact@v4
         with:
           name: prism-linux-packages
-          path: build/*.{deb,rpm}
+          path: packages/
 
   build-windows:
     runs-on: windows-latest
