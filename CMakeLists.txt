@@ -38,10 +38,18 @@ target_include_directories(prism PRIVATE
 target_link_libraries(prism PRIVATE
     fmt
     spdlog::spdlog
+    pthread
 )
 
-if(UNIX AND NOT APPLE)
-    target_link_libraries(prism PRIVATE pthread)
-endif()
-
+# --- Installation & Packaging ---
 install(TARGETS prism DESTINATION bin)
+
+set(CPACK_PACKAGE_NAME "prism")
+set(CPACK_PACKAGE_VENDOR "NuggiDev")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_GENERATOR "DEB;RPM")
+
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "annalisatorcello9@gmail.com")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.27), libstdc++6 (>= 8)")
+
+include(CPack)
