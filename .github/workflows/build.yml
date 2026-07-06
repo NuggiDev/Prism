@@ -1,70 +1,62 @@
-name: Build & Package
+name: Multi-Platform Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            artifact: prism
+          - os: macos-latest
+            artifact: prism
+          - os: windows-latest
+            artifact: prism.exe
+    
+    runs-on: ${{ matrix.os }}
+    
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake build-essential rpm
-
-      - name: Create build directory
-        run: mkdir -p build
-
-      - name: Configure CMake
-        working-directory: build
-        run: cmake ..
-
-      - name: Build
-        working-directory: build
-        run: cmake --build . --config Release
-
-      - name: Package with CPack
-        working-directory: build
-        run: |
-          cpack -G DEB
-          cpack -G RPM
-          # Create a folder to collect all packages for easy uploading
-          mkdir -p ../packages
-          cp *.deb ../packages/ || true
-          cp *.rpm ../packages/ || true
-
-      - name: Upload Linux Packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: prism-linux-packages
-          path: packages/
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
+      
       - name: Install CMake
-        run: choco install cmake -y
-
-      - name: Create build directory
-        run: mkdir -Force build
-
+        uses: lukka/get-cmake@latest
+      
       - name: Configure CMake
-        working-directory: build
-        run: cmake ..
-
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      
       - name: Build
-        working-directory: build
-        run: cmake --build . --config Release
-
-      - name: Upload Windows binary
+        run: cmake --build build --config Release
+      
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: prism-windows
-          path: build/Release/prism.exe
+          name: prism-${{ matrix.os }}
+          path: build/Release/${{ matrix.artifact }}
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            prism-ubuntu-latest/prism
+            prism-macos-latest/prism
+            prism-windows-latest/prism.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
