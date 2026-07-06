@@ -12,11 +12,11 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y cmake build-essential
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-      - run: cmake --build build --config Release --verbose
+      - run: cmake --build build --config Release
       - uses: actions/upload-artifact@v4
         with:
           name: linux
-          path: build/Release/prism
+          path: build/prism
 
   build-macos:
     runs-on: macos-latest
@@ -24,11 +24,11 @@ jobs:
       - uses: actions/checkout@v4
       - run: brew install cmake
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-      - run: cmake --build build --config Release --verbose
+      - run: cmake --build build --config Release
       - uses: actions/upload-artifact@v4
         with:
           name: macos
-          path: build/Release/prism
+          path: build/prism
 
   build-windows:
     runs-on: windows-latest
@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: lukka/get-cmake@latest
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-      - run: cmake --build build --config Release --verbose
+      - run: cmake --build build --config Release
       - uses: actions/upload-artifact@v4
         with:
           name: windows
