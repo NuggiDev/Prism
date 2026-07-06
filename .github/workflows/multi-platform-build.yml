@@ -1,0 +1,94 @@
+name: Multi-Platform Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies (Windows)
+        run: |
+          choco install cmake -y
+          choco install llvm -y
+      
+      - name: Configure CMake (Windows)
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      
+      - name: Build (Windows)
+        run: cmake --build build --config Release
+      
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prism-windows
+          path: build/Release/prism.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies (macOS)
+        run: |
+          brew install cmake
+          brew install llvm
+      
+      - name: Configure CMake (macOS)
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      
+      - name: Build (macOS)
+        run: cmake --build build --config Release
+      
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prism-macos
+          path: build/Release/prism
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential clang
+      
+      - name: Configure CMake (Linux)
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      
+      - name: Build (Linux)
+        run: cmake --build build --config Release
+      
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prism-linux
+          path: build/Release/prism
+
+  create-release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            prism-windows/prism.exe
+            prism-macos/prism
+            prism-linux/prism
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
