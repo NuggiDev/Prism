@@ -51,12 +51,21 @@ jobs:
     needs: [build-linux, build-macos, build-windows]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - run: |
+          ls -R artifacts/
+          mkdir -p release
+          cp artifacts/linux-prism/prism release/prism-linux
+          cp artifacts/macos-prism/prism release/prism-macos
+          cp artifacts/windows-prism/prism.exe release/prism-windows.exe
       - uses: softprops/action-gh-release@v2
         with:
-          files: |
-            linux-prism/prism
-            macos-prism/prism
-            windows-prism/prism.exe
+          files: release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
