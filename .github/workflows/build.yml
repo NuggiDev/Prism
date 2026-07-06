@@ -8,55 +8,55 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        include:
-          - os: ubuntu-latest
-            artifact: prism
-          - os: macos-latest
-            artifact: prism
-          - os: windows-latest
-            artifact: prism.exe
-    
-    runs-on: ${{ matrix.os }}
-    
+  build-linux:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Install CMake
-        uses: lukka/get-cmake@latest
-      
-      - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-      
-      - name: Build
-        run: cmake --build build --config Release
-      
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential
+      - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build --config Release
+      - uses: actions/upload-artifact@v4
         with:
-          name: prism-${{ matrix.os }}
-          path: build/Release/${{ matrix.artifact }}
+          name: linux-prism
+          path: build/Release/prism
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          brew install cmake
+      - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build --config Release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-prism
+          path: build/Release/prism
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lukka/get-cmake@latest
+      - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build --config Release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-prism
+          path: build/Release/prism.exe
 
   release:
-    needs: build
+    needs: [build-linux, build-macos, build-windows]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-    
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-      
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - uses: actions/download-artifact@v4
+      - uses: softprops/action-gh-release@v2
         with:
           files: |
-            prism-ubuntu-latest/prism
-            prism-macos-latest/prism
-            prism-windows-latest/prism.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            linux-prism/prism
+            macos-prism/prism
+            windows-prism/prism.exe
