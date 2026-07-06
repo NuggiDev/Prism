@@ -13,10 +13,11 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y cmake build-essential
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --config Release
+      - run: mv build/prism linux-prism
       - uses: actions/upload-artifact@v4
         with:
           name: linux
-          path: build/prism
+          path: linux-prism
 
   build-macos:
     runs-on: macos-latest
@@ -25,10 +26,11 @@ jobs:
       - run: brew install cmake
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --config Release
+      - run: mv build/prism macos-prism
       - uses: actions/upload-artifact@v4
         with:
           name: macos
-          path: build/prism
+          path: macos-prism
 
   build-windows:
     runs-on: windows-latest
@@ -37,10 +39,11 @@ jobs:
       - uses: lukka/get-cmake@latest
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --config Release
+      - run: move build\Release\prism.exe windows-prism.exe
       - uses: actions/upload-artifact@v4
         with:
           name: windows
-          path: build/Release/prism.exe
+          path: windows-prism.exe
 
   release:
     needs: [build-linux, build-macos, build-windows]
@@ -53,6 +56,6 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            linux/prism
-            macos/prism
-            windows/prism.exe
+            linux/linux-prism
+            macos/macos-prism
+            windows/windows-prism.exe
