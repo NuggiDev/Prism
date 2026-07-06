@@ -19,7 +19,7 @@ jobs:
       - run: cmake --build build --config Release
       - uses: actions/upload-artifact@v4
         with:
-          name: linux-prism
+          name: linux-binary
           path: build/Release/prism
 
   build-macos:
@@ -30,10 +30,16 @@ jobs:
           brew install cmake
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --config Release
+      - run: |
+          mkdir -p Prism.app/Contents/MacOS
+          cp build/Release/prism Prism.app/Contents/MacOS/
+          mkdir -p dmg_temp
+          cp -r Prism.app dmg_temp/
+          hdiutil create -volname "Prism" -srcfolder dmg_temp -ov -format UDZO prism.dmg
       - uses: actions/upload-artifact@v4
         with:
-          name: macos-prism
-          path: build/Release/prism
+          name: macos-dmg
+          path: prism.dmg
 
   build-windows:
     runs-on: windows-latest
@@ -44,26 +50,61 @@ jobs:
       - run: cmake --build build --config Release
       - uses: actions/upload-artifact@v4
         with:
-          name: windows-prism
+          name: windows-exe
           path: build/Release/prism.exe
 
+  package-linux:
+    needs: build-linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-binary
+          path: bin
+      - run: |
+          chmod +x bin/prism
+          mkdir -p prism-deb/usr/local/bin
+          cp bin/prism prism-deb/usr/local/bin/
+          mkdir -p prism-deb/DEBIAN
+          cat > prism-deb/DEBIAN/control << 'CONTROL'
+Package: prism
+Version: 1.0.0
+Architecture: amd64
+Maintainer: NuggiDev <annalisatorcello9@gmail.com>
+Description: Universal build system detection tool
+CONTROL
+          dpkg-deb --build prism-deb prism.deb
+      - run: |
+          sudo apt-get install -y rpm
+          mkdir -p prism-rpm/usr/local/bin
+          cp bin/prism prism-rpm/usr/local/bin/
+          mkdir -p prism-rpm/BUILD
+          fpm -s dir -t rpm -n prism -v 1.0.0 -C prism-rpm usr
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: |
+            prism.deb
+            prism-1.0.0-1.x86_64.rpm
+
   release:
-    needs: [build-linux, build-macos, build-windows]
+    needs: [build-windows, build-macos, package-linux]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
       - run: |
-          ls -R artifacts/
           mkdir -p release
-          cp artifacts/linux-prism/prism release/prism-linux
-          cp artifacts/macos-prism/prism release/prism-macos
-          cp artifacts/windows-prism/prism.exe release/prism-windows.exe
+          cp artifacts/windows-exe/prism.exe release/prism.exe
+          cp artifacts/macos-dmg/prism.dmg release/prism.dmg
+          cp artifacts/linux-packages/prism.deb release/prism.deb
+          cp artifacts/linux-packages/prism-1.0.0-1.x86_64.rpm release/prism.rpm
+          ls -la release/
       - uses: softprops/action-gh-release@v2
         with:
           files: release/*
