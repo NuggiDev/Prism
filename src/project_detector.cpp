@@ -28,6 +28,21 @@ ProjectType ProjectDetector::identifyType(const std::string& projectPath) {
         if (fileExists(markerPath.string())) {
             return type;
         }
+        
+        // DEBUG: Check for case-insensitive matches on Windows
+        #ifdef _WIN32
+        fs::path dirPath(projectPath);
+        if (fs::is_directory(dirPath)) {
+            for (const auto& entry : fs::directory_iterator(dirPath)) {
+                std::string filename = entry.path().filename().string();
+                if (filename == marker || 
+                    (marker == ".sln" && (filename.find(".sln") != std::string::npos || filename.find(".SLN") != std::string::npos)) ||
+                    (marker == ".csproj" && (filename.find(".csproj") != std::string::npos || filename.find(".CSPROJ") != std::string::npos))) {
+                    return type;
+                }
+            }
+        }
+        #endif
     }
     
     return ProjectType::UNKNOWN;
