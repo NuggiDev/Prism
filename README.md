@@ -6,7 +6,7 @@ Prism automatically detects your project type, validates required build tools, a
 
 ## Features
 
-- 🔍 Auto-detects project type (C++, C#, Rust, Python, Node.js, Java, etc.)
+- 🔍 Auto-detects project type (C++, (C# is in develpment and may not work) Rust, Python, Node.js, Java, etc.)
 - ✅ Validates required build tools before building
 - 👷 Unified build interface across all languages
 - 🖥️ Cross-platform support (Windows, macOS, Linux)
